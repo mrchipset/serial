@@ -427,7 +427,17 @@ Serial::SerialImpl::setTimeout (serial::Timeout &timeout)
 {
   timeout_ = timeout;
   if (is_open_) {
-    reconfigurePort ();
+    //reconfigurePort ();
+    // Setup timeouts
+    COMMTIMEOUTS timeouts = { 0 };
+    timeouts.ReadIntervalTimeout = timeout_.inter_byte_timeout;
+    timeouts.ReadTotalTimeoutConstant = timeout_.read_timeout_constant;
+    timeouts.ReadTotalTimeoutMultiplier = timeout_.read_timeout_multiplier;
+    timeouts.WriteTotalTimeoutConstant = timeout_.write_timeout_constant;
+    timeouts.WriteTotalTimeoutMultiplier = timeout_.write_timeout_multiplier;
+    if (!SetCommTimeouts(fd_, &timeouts)) {
+        THROW(IOException, "Error setting timeouts.");
+    }
   }
 }
 
